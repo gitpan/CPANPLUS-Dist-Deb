@@ -1,0 +1,21 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         CPANPLUS-Dist-Deb
+version:      0.03_01
+version_from: lib/CPANPLUS/Dist/Deb.pm
+installdirs:  site
+requires:
+    CPANPLUS:                      0.059
+    CPANPLUS::Dist::Build:         0.03
+    IPC::Cmd:                      0.23
+    Locale::Maketext::Simple:      0
+    Module::Load::Conditional:     0.06
+    Module::Pluggable:             2.4
+    Object::Accessor:              0.02
+    Package::Constants:            0
+    Params::Check:                 0.23
+    Test::More:                    0
+    YAML:                          0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.25
