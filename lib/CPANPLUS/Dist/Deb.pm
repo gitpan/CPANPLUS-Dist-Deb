@@ -3,7 +3,7 @@ package CPANPLUS::Dist::Deb;
 use strict;
 use vars    qw[@ISA $VERSION];
 @ISA =      qw[CPANPLUS::Dist];
-$VERSION =  '0.03_01';
+$VERSION =  '0.04';
 
 use CPANPLUS::inc;
 use CPANPLUS::Error;
@@ -452,8 +452,61 @@ sub prepare {
             ### if the prereq requires any specific version, we'll assume
             ### the one we can provide, otherwise, we'll set it to undef,
             ### marking 'any'
-            push @depends, [$obj, 
-                            ($prereqs->{$prereq} ? $obj->version : undef) ];
+            ### make sure we pick the /lowest/ version available, in case
+            ### of custom patches, core running ahead of cpan, etc
+            
+            ### XXX here's a problem: 
+            ### some distributions contain several modules, like PathTools
+            ### use to;
+            ### Cwd 1.0, File::Spec 2.0, both in PathTools-3.0.tgz
+            ### if you already have Cwd or File::Spec installed at a,
+            ### for this install, sufficient version, we can no longer
+            ### determine what /package/ they came from (as that information
+            ### does not exist). So, if this situation occurs, we check
+            ### if the installed version is the same as the cpan version.
+            ### In that case, and then we will depend on the cpan package
+            ### version. if *not* we will depend on the *installed_version*
+            ### which may *differ* from the cpan version, but there's not
+            ### much we can do :(
+            {   my $version = undef;
+                
+                ### we need a certain version
+                if( $prereqs->{$prereq} ) {
+
+                    ### 2 scenarios -- either you have a previously
+                    ### installed version, or you don't
+                    if( $obj->installed_version ) {
+                    
+                        ### if the installed version is the same or higher
+                        ### (wtf? custom patches?) than the cpan version,
+                        ### use the cpan package version
+                        if( $obj->installed_version >= $obj->version ) {
+                            $version = $obj->package_version;
+
+                        ### the version is *lower* than what's on cpan
+                        ### now we need to find out what package that was
+                        ### released. However, that is currenty impossible :(
+                        ### so we assume that the installed version is magically
+                        ### matching the package version.. pretty please, with
+                        ### sugar on top...
+                        ### this will only possibly hurt if it's wrong, if you
+                        ### are making these modules available through an apt
+                        ### repo, which will then point to the 'wrong' debian
+                        ### dependency.. however, since the dependency has also
+                        ### been built by us, the 'right' cpan-lib*perl will
+                        ### be picked.
+                        } else {
+                            $version = $obj->installed_version    
+                        }
+
+                    ### no version installed? depend on the cpan package version
+                    } else {
+                        $version = $obj->package_version;
+                    }
+                }
+                
+                push @depends, [$obj, $version];
+            }
         }
     }
 

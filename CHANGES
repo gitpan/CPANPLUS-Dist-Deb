@@ -1,3 +1,18 @@
+Changes for 0.04        Wed Mar 15 16:09:03 2006
+================================================
+
+*   use Package::Constants to list constants
+*   documentation improvements
+*   add heuristics what versions of prereqs
+    to depend on rather than just assuming
+    CPAN most recent
+*   Due to a bug in module::build we need to
+    remove the .packlist from their installations
+    (see rt bug #18162)
+*   Make sure the first letter of the 'pool' dir
+    is from the package name, not the module name
+
+
 Changes for 0.03_01     Sun Oct 16 13:09:17 2005
 ================================================
 

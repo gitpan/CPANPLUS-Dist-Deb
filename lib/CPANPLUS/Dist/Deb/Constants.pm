@@ -113,7 +113,7 @@ use constant DEB_DISTDIR_PREFIX => sub { my $pre = shift || '';
 use constant DEB_DISTDIR        => sub { my $dist = shift or return;
                                          my $pre  = shift || '';
                                          my ($l)  = 
-                                            $dist->parent->module =~ /^(.)/;
+                                          $dist->parent->package_name =~ /^(.)/;
                                          
                                          return File::Spec->catdir(
                                             qw[main pool],
@@ -585,6 +585,12 @@ install-stamp: build-stamp
 
 	$(PERL) $(BUILD) install destdir=$(TMP)
 	-find . -type f | grep '/perllocal.pod$$' | xargs rm -f
+
+	# due to a bug in M::B, the .packlist file is written to
+	# the wrong directory, causing file conflicts:
+	# http://rt.cpan.org/Ticket/Display.html?id=18162
+	# remove it for now
+	-find . -type f | grep '/.packlist$$' | xargs rm -f
 	
 	dh_movefiles /usr
 
@@ -680,6 +686,12 @@ install-stamp:
 	# Add here commands to install the package into debian/tmp.
 	$(PERL) $(BUILD) install destdir=$(TMP)
 	-find . -type f | grep '/perllocal.pod$$' | xargs rm -f
+
+	# due to a bug in M::B, the .packlist file is written to
+	# the wrong directory, causing file conflicts:
+	# http://rt.cpan.org/Ticket/Display.html?id=18162
+	# remove it for now
+	-find . -type f | grep '/.packlist$$' | xargs rm -f
 
 	dh_movefiles /usr
 
