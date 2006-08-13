@@ -3,7 +3,7 @@ package CPANPLUS::Dist::Deb;
 use strict;
 use vars    qw[@ISA $VERSION];
 @ISA =      qw[CPANPLUS::Dist];
-$VERSION =  '0.04';
+$VERSION =  '0.05';
 
 use CPANPLUS::inc;
 use CPANPLUS::Error;
@@ -295,8 +295,7 @@ sub prepare {
                                 store => \$verbose },
             force       => { default => $conf->get_conf('force'),
                                 store => \$force },
-            perl        => { default => ($conf->get_program('perl') || $^X),
-                                store => \$perl },
+            perl        => { default => $^X, store => \$perl },
             ### XXX is this the right thing to do???
             prereq_target   => { default => 'install',
                                  store   => \$prereq_target },

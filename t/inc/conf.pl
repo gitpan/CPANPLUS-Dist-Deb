@@ -34,6 +34,9 @@ BEGIN {
 
     ### dont try to report tests!
     $CB->configure_object->set_conf( cpantest => 0 );
+
+    ### disable sig tests
+    $CB->configure_object->set_conf( signature => 0 );
     
     ### a fake module object to play with
     $FAKEMOD    = CPANPLUS::Module::Fake->new(
