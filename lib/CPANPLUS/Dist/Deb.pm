@@ -3,7 +3,7 @@ package CPANPLUS::Dist::Deb;
 use strict;
 use vars    qw[@ISA $VERSION];
 @ISA =      qw[CPANPLUS::Dist];
-$VERSION =  '0.05';
+$VERSION =  '0.06';
 
 use CPANPLUS::inc;
 use CPANPLUS::Error;
@@ -305,7 +305,8 @@ sub prepare {
             prefix          => { default => 'cpan-', store => \$prefix },
             distribution    => { default => DEB_DEFAULT_RELEASE, 
                                   store => \$distribution },
-            deb_version     => { default => 1, store => \$deb_version },                                  
+            deb_version     => { default => DEB_DEFAULT_PACKAGE_VERSION,
+                                  store => \$deb_version },                                  
             #keep_source     => { default => 0, store => \$keep_source },
             prereq_build    => { default => 0, store => \$prereq_build },
         };
@@ -326,8 +327,11 @@ sub prepare {
                     
     ### did we already create the package? if so, don't bother to rebuild
     ### unless we are forced to
+
     {   for my $has_xs (0,1) {
-            my $pkg = DEB_DEB_FILE_NAME->( $self, $basedir, $prefix, $has_xs);
+            my $pkg = DEB_DEB_FILE_NAME->( 
+                            $self, $basedir, $prefix, $has_xs, $deb_version
+                        );
 
             if( -e $pkg && -s _ and not $force) {
                 msg(loc("Already created package of '%1' at '%2' -- not doing"
@@ -425,7 +429,9 @@ sub prepare {
     ### let's figure out what this distribution will be called -- we'll need
     ### that later to see if it was actually created
     {   my $has_xs  = scalar GET_XS_FILES->( $self->status->extract ) ? 1 : 0;
-        my $debfile = DEB_DEB_FILE_NAME->( $self, '.', $prefix, $has_xs );
+        my $debfile = DEB_DEB_FILE_NAME->( 
+                            $self, '.', $prefix, $has_xs, $deb_version 
+                        );
         
         $dist->status->package_filename( $debfile );
     }
@@ -701,6 +707,7 @@ EOF
         ### if (m/^(\w[-+0-9a-z.]*) \(([^\(\) \t]+)\)((\s+[-0-9a-z]+)+)\;/i) {
         ### (taken from /usr/lib/dpkg/parsechangelog/debian ) which means that
         ### we can not have _ in package names, but dots are fine.
+
         my $pkg     = DEB_PACKAGE_NAME->($self, $prefix);
         my $version = DEB_VERSION->($self, $deb_version);
         my $urgency = DEB_URGENCY;
@@ -849,7 +856,7 @@ sub create {
     
     ### already created? 
     if( $dist->status->created and not $force ) {
-        msg(loc("You have already created a '%2' distribution -- not doing ".
+        msg(loc("You have already created a '%1' distribution -- not doing ".
                 "so again unless you force", __PACKAGE__ ));     
         return 1;
     }
@@ -885,8 +892,6 @@ sub create {
         ### ../$NAME_$VERSION_$ARCH.deb
         ### and we can't tell dpkg-buildpackage to output it anywhere else :(
         #my $has_xs  = scalar GET_XS_FILES->($self->status->extract) ? 1 : 0;
-        #my $debfile = DEB_DEB_FILE_NAME->(  $self, $dist->status->distdir,
-        #                                    $prefix, $has_xs);
         {   my $tmpfile = File::Spec->catfile(  $dist->status->_tmp_output_dir,
                                                 $dist->status->package_filename 
                                             );

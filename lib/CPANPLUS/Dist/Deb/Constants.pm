@@ -129,7 +129,7 @@ use constant DEB_BIN_BUILDPACKAGE
                                         unless( $p ) {
                                             error(loc(
                                                 "Could not find '%1' in your ".
-                                                "path --unable to genearte ".
+                                                "path --unable to generate ".
                                                 "debian archives",
                                                 'dpkg-buildpackage' ));
                                             return;
@@ -154,7 +154,7 @@ use constant DEB_PACKAGE_NAME   => sub {my $mod = shift or return;
                                         my $deb = $pre . 'lib' . 
                                                     $pkg . '-perl';
                                                     
-                                        $deb =~ s/_/-/g; # no _ allowed!
+                                        $deb =~ s/[_+]/-/g; # no _ or + allowed!
                                         
                                         ### strip double leading 'lib'
                                         $deb =~ s/^(${pre}lib)lib/$1/;
@@ -175,9 +175,12 @@ use constant DEB_ORIG_PACKAGE_NAME
                                          $mod->package_extension;
                                 };                                
 
+use constant DEB_DEFAULT_PACKAGE_VERSION
+                                => 1;
                                 
 use constant DEB_VERSION        => sub {my $mod = shift or return;
-                                        my $ver = shift || 1;
+                                        my $ver = shift || 
+                                                  DEB_DEFAULT_PACKAGE_VERSION;
                                         return $mod->package_version . 
                                                 '-' . $ver;
                                 };
@@ -186,13 +189,15 @@ use constant DEB_DEB_FILE_NAME  => sub {my $mod = shift() or return;
                                         my $dir = shift() or return;
                                         my $pre = shift() || '';
                                         my $xs  = shift() ? 1 : 0;
+                                        my $ver = @_ ? shift() : undef;
+                                        
                                         my $arch = $xs
                                             ? DEB_ARCHITECTURE->()
                                             : DEB_RULES_ARCH->();
 
                                         my $name = join '_',
                                             DEB_PACKAGE_NAME->($mod, $pre),
-                                            DEB_VERSION->($mod),
+                                            DEB_VERSION->($mod, $ver),
                                             $arch .'.deb';
                                         return File::Spec->catfile(
                                                 $dir, $name
