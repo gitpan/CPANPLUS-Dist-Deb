@@ -3,7 +3,7 @@ package CPANPLUS::Dist::Deb;
 use strict;
 use vars    qw[@ISA $VERSION];
 @ISA =      qw[CPANPLUS::Dist];
-$VERSION =  '0.06';
+$VERSION =  '0.08';
 
 use CPANPLUS::inc;
 use CPANPLUS::Error;
@@ -610,7 +610,7 @@ sub prepare {
         }
 
 
-        $fh->print(<< "EOF");
+        my $contents = << "EOF";
 Source: $pkg
 Section: perl
 Priority: optional
@@ -647,8 +647,7 @@ EOF
         
         ### so we have a prefix? best explain what package we are /actually/
         ### providing. Also note the Conflicts
-        $fh->print( "Provides: " . DEB_PACKAGE_NAME->($self) . "\n")
-            if $prefix;
+        $contents .= "Provides: " . DEB_PACKAGE_NAME->($self) . "\n" if $prefix;
          
         ### XXX remove 'Conflicts:' -- versioned provides don't work
         ### with dpkg :( so if someone wants 'libfoo-perl > 2.0' it
@@ -661,12 +660,24 @@ EOF
         ### Description: short desc
         ### long description
     
-        $fh->print(<< "EOF");
+        $contents .= << "EOF";
 Depends: $depends
 Description: $desc
  $desc
 
 EOF
+
+        ### run the contents through the callback for munging
+        ### make this conditional, as this was introduced in the
+        ### dev branch of 0.81_01, so not all may have it (automatically)
+        ### installed
+        if( $cb->_callbacks->munge_dist_metafile ) {
+            $contents = $cb->_callbacks->munge_dist_metafile->( 
+                            $cb, $contents 
+                        );
+        }                        
+
+        $fh->print( $contents );
 
         $fh->close;
         $dist->status->control( $control );
@@ -686,7 +697,7 @@ EOF
 
         ### this is in the sample, but what the hell does it do?
         ### -- it's just the version of the spec files we used
-        $fh->print("4\n");
+        $fh->print( DEB_SPEC_FILE_VERSION . "\n");
         $fh->close;
 
         $dist->status->compat( $compat );

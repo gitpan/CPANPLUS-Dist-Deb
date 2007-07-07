@@ -1,11 +1,11 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         CPANPLUS-Dist-Deb
-version:      0.06
+version:      0.08
 version_from: lib/CPANPLUS/Dist/Deb.pm
 installdirs:  site
 requires:
-    CPANPLUS:                      0.061
+    CPANPLUS:                      0.81
     CPANPLUS::Dist::Build:         0.03
     IPC::Cmd:                      0.23
     Locale::Maketext::Simple:      0
