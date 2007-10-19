@@ -3,7 +3,7 @@ package CPANPLUS::Dist::Deb;
 use strict;
 use vars    qw[@ISA $VERSION];
 @ISA =      qw[CPANPLUS::Dist];
-$VERSION =  '0.08';
+$VERSION =  '0.10';
 
 use CPANPLUS::inc;
 use CPANPLUS::Error;
@@ -811,7 +811,6 @@ EOF
         $dist->status->rules( $rules_file );
     }
 
-
     $dist->status->prepared(1);
     return $dist->status->builddir;
 }
@@ -960,6 +959,14 @@ sub create {
         unless( $cb->_chdir( dir => $conf->_get_build('startdir') ) ) {
             error(loc("Unable to '%1' back to startdir",'chdir'));
         }
+    }
+
+    ### if we're asked to clean up our sources, then they
+    ### live in $dist->status->debiandir. Rmtree the lot 
+    unless ( $keep_source ) {
+        my $dir = $dist->status->debiandir;
+        msg(loc("Cleaning up meta directory '%1'",$dir), $verbose);
+        $cb->_rmdir( dir => $dir );
     }
 
     $dist->status->created(1);
